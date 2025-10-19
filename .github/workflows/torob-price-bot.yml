@@ -3,22 +3,31 @@ name: Torob Price Bot (3-hourly)
 on:
   schedule:
     - cron: "0 */3 * * *"   # every 3 hours (UTC)
-  workflow_dispatch: {}      # allows manual run
+  workflow_dispatch: {}
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Ensure UTF-8
+        run: |
+          echo "PYTHONIOENCODING=utf-8" >> $GITHUB_ENV
+
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
+
       - name: Scan Torob and notify Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Optional: enable trimmed mean (reduces outlier skew)
+          # TRIM_OUTLIERS: "1"
         run: python check_torob.py
